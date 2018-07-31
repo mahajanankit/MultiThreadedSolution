@@ -70,7 +70,8 @@ public class ResultCalculator extends RecursiveAction {
 							
 							
 							//aggregating values for question based on most agreement
-							if(day == 2) {
+							//Tuesday
+							if(day == 3) {
 								
 								synchronized (tuesday) {
 									if (tuesday.containsKey(agreement)) {
@@ -80,8 +81,8 @@ public class ResultCalculator extends RecursiveAction {
 									}
 								}
 							}
-
-							if(day == 5) {
+							//Friday
+							if(day == 6) {
 								synchronized (friday) {
 									HashMap<String, Integer> temp = friday.get(location);
 									if (temp == null) {
