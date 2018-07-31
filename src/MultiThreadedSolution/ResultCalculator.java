@@ -56,17 +56,22 @@ public class ResultCalculator extends RecursiveAction {
 
 						JSONObject jsonObject = (JSONObject) it.next();
 						Iterator iterator = jsonObject.keySet().iterator();
-
-						while (iterator.hasNext()) {
+						
 							String key = (String) iterator.next();
-							String agreement = null;
-							String checkinTime = null;
+							String checkinTime = (String) jsonObject.get(key);
+							key = (String) iterator.next();
+							String agreement = membersAgrementType.get(String.valueOf(jsonObject.get(key)));
+							
+							// Using calendar class to derive day of the week from the date
+							Calendar calendar = Calendar.getInstance();
 
-							// when key is memberid aggregating values for question based on most agreement
-							// type
-							if (key.equals("memberId")) {
-								agreement = membersAgrementType.get(String.valueOf(jsonObject.get(key)));
-
+							calendar.set(Integer.parseInt(checkinTime.substring(0, 4)), month, date);
+							int day = calendar.get(Calendar.DAY_OF_WEEK);
+							
+							
+							//aggregating values for question based on most agreement
+							if(day == 2) {
+								
 								synchronized (tuesday) {
 									if (tuesday.containsKey(agreement)) {
 										tuesday.put(agreement, tuesday.get(agreement) + 1);
@@ -74,7 +79,9 @@ public class ResultCalculator extends RecursiveAction {
 										tuesday.put(agreement, 1);
 									}
 								}
+							}
 
+							if(day == 5) {
 								synchronized (friday) {
 									HashMap<String, Integer> temp = friday.get(location);
 									if (temp == null) {
@@ -82,23 +89,18 @@ public class ResultCalculator extends RecursiveAction {
 										temp.put(agreement, 1);
 										friday.put(location, temp);
 									} else if (temp.containsKey(agreement)) {
-										temp.put(agreement, tuesday.get(agreement) + 1);
+										temp.put(agreement, temp.get(agreement) + 1);
 									} else {
 										temp.put(agreement, 1);
 									}
-
+	
 								}
+							}
 
 								// when key is checkin date aggregating values for question based on frequency
-							} else {
-								checkinTime = (String) jsonObject.get(key);
+								
 
-								// Using calendar class to derive day of the week from the date
-								Calendar calendar = Calendar.getInstance();
-
-								calendar.set(Integer.parseInt(checkinTime.substring(0, 4)), month, date);
-								int day = calendar.get(Calendar.DAY_OF_WEEK);
-								synchronized (days) {
+							synchronized (days) {
 									days[day]++;
 								}
 
@@ -112,10 +114,9 @@ public class ResultCalculator extends RecursiveAction {
 								}
 							}
 						}
-					}
+					
 				}
 			}
-		} else {
 			// breaking tasks for threads based on threads
 			if (locationID > 0) {
 				ResultCalculator rs = new ResultCalculator();
@@ -128,8 +129,6 @@ public class ResultCalculator extends RecursiveAction {
 				rs.join();// waiting for all threads to be done
 			}
 		}
-
-	}
 
 	// method to fetch and tranform checkin data from the server
 	private JSONArray getCheckIn(int month, int date, int location) {
